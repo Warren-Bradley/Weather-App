@@ -1,0 +1,126 @@
+from tkinter import *
+from PIL import ImageTk, Image
+import requests
+import json
+from tkinter import messagebox
+
+
+#Creates the main window
+root = Tk()
+
+#Sets Title of the program
+root.title('AQI APP')
+
+#putting my own icon in the corner of the program
+root.iconbitmap('c:/icon.ico')
+
+#Pre-sets the size of the window
+#root.configure(background = 'grey')
+
+frame = LabelFrame(root, padx = 10, pady = 10)
+frame.pack( padx = 10, pady = 10)
+frame.configure(background = 'green')
+
+
+station_entry = Entry(frame, width = 30)
+station_entry.grid(row = 4, column = 1,padx = 10,stick = W+E+N+S)
+
+station_entry_det = Label(frame, text = "Enter station to track:")
+station_entry_det.grid(row = 4, column = 0,padx = 10,stick = W+E+N+S)
+
+def track():
+	global my_label
+	try:
+		api_request = requests.get(f"https://api.waqi.info/search/?keyword={station_entry.get()}&token=4a48a599dfe5dc3ab961f5a8537b0ed4de509b34")    
+		api = json.loads(api_request.content)
+		station = str(api['data'][0]['station']['name'])
+		aqi = int(api['data'][0]['aqi'])
+
+
+		status = ""
+		colour = ""
+
+		if aqi in range(0,51):
+			status = 'Good'
+			colour = '#0C0'
+		elif aqi in range(51,101):
+		    status = 'Moderate'
+		    colour = '#FFFF00'
+		elif aqi in range(100,151):
+		    status = 'Unhealthy for sensitive groups'
+		    colour = '#ff9900'
+		elif aqi in range(151,201):
+		    status = 'Unhealthy'
+		    colour = '#FF0000'
+		elif aqi in range(201,301):
+		    status = 'Very unhealthy'
+		    colour = '#990066'
+		else:
+		    status = 'Hazardous'
+		    colour = '#660000'
+
+		my_label.grid_forget()
+
+
+		frame.configure(background = colour)
+		my_label = Label(frame, text = f"STATION: {station}\nAQI: {aqi}\nSTATUS: {status}", font = ("Helvetica",10), background = colour)
+		my_label.grid(row = 0, column = 0, columnspan = 2, padx = 40)
+
+	except Exception as e:
+		response = messagebox.showerror("ERROR!", "The station entered could not be found.\n Please try again!")
+		return 
+
+
+try:
+	api_request = requests.get("https://api.waqi.info/search/?keyword=capetown&token=4a48a599dfe5dc3ab961f5a8537b0ed4de509b34")     
+	api = json.loads(api_request.content)
+	station = str(api['data'][0]['station']['name'])
+	aqi = int(api['data'][0]['aqi'])
+
+
+	status = ""
+	colour = ""
+
+	if aqi in range(0,51):
+		status = 'Good'
+		colour = '#0C0'
+	elif aqi in range(51,101):
+	    status = 'Moderate'
+	    colour = '#FFFF00'
+	elif aqi in range(100,151):
+	    status = 'Unhealthy for sensitive groups'
+	    colour = '#ff9900'
+	elif aqi in range(151,201):
+	    status = 'Unhealthy'
+	    colour = '#FF0000'
+	elif aqi in range(201,301):
+	    status = 'Very unhealthy'
+	    colour = '#990066'
+	else:
+	    status = 'Hazardous'
+	    colour = '#660000'
+
+	frame.configure(background = colour)
+	
+	my_label = Label(frame, text = f"STATION: {station}\nAQI: {aqi}\nSTATUS: {status}", font = ("Helvetica",10), background = colour)
+	my_label.grid(row = 0, column = 0, columnspan = 2,padx = 40)
+
+except Exception as e:
+	api = "Error..."
+
+
+track_button = Button(frame, text = "Track Station", command = track)
+track_button.grid(row = 5, column = 0, columnspan = 2,padx = 10, pady = 5,stick = W+E+N+S)
+
+
+'''
+city_label = Label(root, text = city)
+city_label.pack()
+aqi_label = Label(root, text = str(aqi))
+aqi_label.pack()
+status_label =  Label(root, text = status)
+status_label.pack()
+'''
+
+#Keeps the program running till window is closed or program is exited
+root.mainloop()
